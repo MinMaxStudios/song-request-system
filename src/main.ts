@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 
 if (require("electron-squirrel-startup")) {
@@ -23,6 +23,10 @@ const createWindow = () => {
   }
 
   mainWindow.webContents.openDevTools();
+
+  ipcMain.on("video-ended", () => {
+    console.log("video ended");
+  });
 };
 
 app.on("ready", createWindow);
