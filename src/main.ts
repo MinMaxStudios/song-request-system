@@ -5,13 +5,19 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
+import { l } from "vite/dist/node/types.d-aGj9QkWt";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
 const songIds = JSON.parse(readFileSync("./songs.json", "utf-8"));
-const queue = new Set<string>();
+const queue = new Map<
+  string,
+  {
+    title: string;
+  }
+>();
 
 function getRandomSong() {
   return songIds[Math.floor(Math.random() * songIds.length)];
@@ -46,11 +52,22 @@ const createWindow = async () => {
 
   ipcMain.handle("yt:get-video", async () => {
     let videoId: string;
+    let title: string;
     if (queue.size > 0) {
-      videoId = queue.values().next().value;
+      const [queueEntry] = [...queue.entries()];
+      videoId = queueEntry[0];
+      title = queueEntry[1].title;
       queue.delete(videoId);
-    } else videoId = getRandomSong();
-    writeFileSync("current-song.txt", await getSongTitle(videoId));
+      mainWindow.webContents.send(
+        "queue-updated",
+        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+      );
+    } else {
+      videoId = getRandomSong();
+      title = await getSongTitle(videoId);
+    }
+
+    writeFileSync("current-song.txt", title);
     return videoId;
   });
 
@@ -79,10 +96,17 @@ const createWindow = async () => {
         return mc.sendMessage(
           `${message.user.name}, I couldn't find a video with that search query.`,
         );
-      const videoId = data.items[0].id.videoId;
-      queue.add(videoId);
+
+      const video = data.items[0];
+      const videoId = video.id.videoId;
+      const title = video.snippet.title;
+      queue.set(videoId, { title });
+      mainWindow.webContents.send(
+        "queue-updated",
+        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+      );
       mc.sendMessage(
-        `${message.user.name}, ${await getSongTitle(videoId)} has been added to the queue.`,
+        `${message.user.name}, ${title} has been added to the queue.`,
       );
     }
   });

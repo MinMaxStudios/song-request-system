@@ -10,6 +10,9 @@ declare global {
   interface Window {
     electronAPI: {
       getVideo: () => Promise<string>;
+      onQueueUpdate: (
+        callback: (queue: { id: string; title: string }[]) => void,
+      ) => void;
     };
   }
 }
@@ -33,3 +36,10 @@ declare global {
     },
   });
 })();
+
+window.electronAPI.onQueueUpdate((queue) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  document.getElementById("queue")!.innerText =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    `Current Queue:\n${queue.map(({ title }: any, index: number) => `${index + 1}. ${title}`).join("\n")}`;
+});

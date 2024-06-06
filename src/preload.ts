@@ -5,4 +5,6 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   getVideo: () => ipcRenderer.invoke("yt:get-video"),
+  onQueueUpdate: (callback: (queue: { id: string; title: string }[]) => void) =>
+    ipcRenderer.on("queue-updated", (_event, queue) => callback(queue)),
 });
