@@ -1,11 +1,12 @@
 import { app, BrowserWindow, ipcMain } from "electron";
+import { readFileSync } from "node:fs";
 import path from "path";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
-const songIds = ["quq2za8Rhc4"];
+const songIds = JSON.parse(readFileSync("./songs.json", "utf-8"));
 
 function getRandomSong() {
   return songIds[Math.floor(Math.random() * songIds.length)];
