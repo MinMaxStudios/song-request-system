@@ -5,6 +5,12 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+const songIds = ["quq2za8Rhc4"];
+
+function getRandomSong() {
+  return songIds[Math.floor(Math.random() * songIds.length)];
+}
+
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -24,9 +30,8 @@ const createWindow = () => {
 
   mainWindow.webContents.openDevTools();
 
-  ipcMain.handle("yt:get-new-video", () => {
-    console.log("video ended");
-    return "UW1LRsdwUSE";
+  ipcMain.handle("yt:get-video", () => {
+    return getRandomSong();
   });
 };
 
