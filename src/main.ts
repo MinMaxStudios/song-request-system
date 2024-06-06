@@ -26,7 +26,7 @@ const createWindow = () => {
 
   ipcMain.handle("yt:get-new-video", () => {
     console.log("video ended");
-    return "responded";
+    return "UW1LRsdwUSE";
   });
 };
 

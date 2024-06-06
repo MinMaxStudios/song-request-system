@@ -9,7 +9,7 @@ console.log(
 declare global {
   interface Window {
     electronAPI: {
-      getNewVideo: () => Promise<void>;
+      getNewVideo: () => Promise<string>;
     };
   }
 }
@@ -27,8 +27,8 @@ const player = new YT.Player("player", {
     },
     onStateChange: async (event) => {
       if (event.data === YT.PlayerState.ENDED) {
-        const response = await window.electronAPI.getNewVideo();
-        console.log(response);
+        const newVideoId = await window.electronAPI.getNewVideo();
+        player.loadVideoById(newVideoId);
       }
     },
   },
