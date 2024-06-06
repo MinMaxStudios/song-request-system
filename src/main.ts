@@ -24,8 +24,9 @@ const createWindow = () => {
 
   mainWindow.webContents.openDevTools();
 
-  ipcMain.on("video-ended", () => {
+  ipcMain.handle("yt:get-new-video", () => {
     console.log("video ended");
+    return "responded";
   });
 };
 

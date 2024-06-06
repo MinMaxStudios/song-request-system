@@ -4,5 +4,5 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  sendEvent: (event: string) => ipcRenderer.send(event),
+  getNewVideo: () => ipcRenderer.invoke("yt:get-new-video"),
 });
