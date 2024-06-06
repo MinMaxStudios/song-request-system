@@ -39,6 +39,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
+    "electron-squirrel-startup": "^1.0.1",
+    "masterchat": "^1.1.0"
   }
 }
