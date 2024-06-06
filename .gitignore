@@ -90,3 +90,8 @@ typings/
 
 # Electron-Forge
 out/
+
+# Environment Variables
+.env
+
+current-song.txt

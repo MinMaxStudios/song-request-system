@@ -1,5 +1,7 @@
+import "dotenv/config";
+
 import { app, BrowserWindow, ipcMain } from "electron";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "path";
 
 if (require("electron-squirrel-startup")) {
@@ -31,8 +33,14 @@ const createWindow = () => {
 
   mainWindow.webContents.openDevTools();
 
-  ipcMain.handle("yt:get-video", () => {
-    return getRandomSong();
+  ipcMain.handle("yt:get-video", async () => {
+    const videoId = getRandomSong();
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`,
+    );
+    const data = await res.json();
+    writeFileSync("current-song.txt", data.items[0].snippet.title);
+    return videoId;
   });
 };
 
