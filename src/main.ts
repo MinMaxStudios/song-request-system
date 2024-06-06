@@ -10,6 +10,10 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+let currentSong: {
+  id: string;
+  title: string;
+} | null = null;
 const songIds = JSON.parse(readFileSync("./songs.json", "utf-8"));
 const queue = new Map<
   string,
@@ -73,6 +77,7 @@ const createWindow = async () => {
       title = await getSongTitle(videoId);
     }
 
+    currentSong = { id: videoId, title };
     writeFileSync("current-song.txt", parseSongTitle(title));
     return videoId;
   });
@@ -114,6 +119,8 @@ const createWindow = async () => {
       mc.sendMessage(
         `${message.user.name}, ${title} has been added to the queue.`,
       );
+    } else if (message.content === "!currentsong") {
+      mc.sendMessage(`Currently playing: ${currentSong?.title}`);
     }
   });
 
