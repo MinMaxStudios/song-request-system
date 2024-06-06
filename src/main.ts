@@ -5,7 +5,6 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
-import { l } from "vite/dist/node/types.d-aGj9QkWt";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -29,6 +28,13 @@ async function getSongTitle(videoId: string): Promise<string> {
   );
   const data = await res.json();
   return data.items[0].snippet.title;
+}
+
+function parseSongTitle(title: string) {
+  return title
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'");
 }
 
 const createWindow = async () => {
@@ -67,7 +73,7 @@ const createWindow = async () => {
       title = await getSongTitle(videoId);
     }
 
-    writeFileSync("current-song.txt", title);
+    writeFileSync("current-song.txt", parseSongTitle(title));
     return videoId;
   });
 
@@ -99,7 +105,7 @@ const createWindow = async () => {
 
       const video = data.items[0];
       const videoId = video.id.videoId;
-      const title = video.snippet.title;
+      const title = parseSongTitle(video.snippet.title);
       queue.set(videoId, { title });
       mainWindow.webContents.send(
         "queue-updated",
