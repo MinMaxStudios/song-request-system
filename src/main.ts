@@ -38,7 +38,12 @@ const queue = new Map<
   }
 >();
 const cooldowns = new Set<string>();
-const trustedChannels = ["UC_aEa8K-EOJ3D6gOs7HcyNg"];
+const trustedChannels = [
+  "UC_aEa8K-EOJ3D6gOs7HcyNg",
+  "UCJ6td3C9QlPO9O_J5dF4ZzA",
+  "UCp8OOssjSjGZRVYK6zWbNLg",
+  "UCa_UMppcMsHIzb5LDx1u9zQ",
+];
 
 function getRandomSong(): string {
   const videoId = songIds[Math.floor(Math.random() * songIds.length)];
