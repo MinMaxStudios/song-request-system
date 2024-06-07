@@ -94,4 +94,6 @@ out/
 # Environment Variables
 .env
 
+# Songs
+songs.json
 current-song.txt
