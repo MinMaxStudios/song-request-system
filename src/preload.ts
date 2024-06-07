@@ -7,4 +7,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getVideo: () => ipcRenderer.invoke("yt:get-video"),
   onQueueUpdate: (callback: (queue: { id: string; title: string }[]) => void) =>
     ipcRenderer.on("queue-updated", (_event, queue) => callback(queue)),
+  onSongSkipped: (callback: (videoId: string) => void) =>
+    ipcRenderer.on("song-skipped", (_event, videoId) => callback(videoId)),
 });

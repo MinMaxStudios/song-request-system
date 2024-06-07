@@ -62,26 +62,7 @@ const createWindow = async () => {
   mainWindow.webContents.openDevTools();
 
   ipcMain.handle("yt:get-video", async () => {
-    let videoId: string;
-    let title: string;
-    if (queue.size > 0) {
-      const [queueEntry] = [...queue.entries()];
-      videoId = queueEntry[0];
-      title = queueEntry[1].title;
-      queue.delete(videoId);
-      mainWindow.webContents.send(
-        "queue-updated",
-        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
-      );
-    } else {
-      videoId = getRandomSong();
-      title = await getSongTitle(videoId);
-    }
-
-    currentSong = { id: videoId, title };
-    writeFileSync("current-song.txt", parseSongTitle(title));
-    cooldowns.clear();
-    return videoId;
+    return await getNextSong();
   });
 
   const mc = await Masterchat.init(process.env.YOUTUBE_STREAM_ID!, {
@@ -130,10 +111,42 @@ const createWindow = async () => {
       );
     } else if (message.content === "!currentsong") {
       mc.sendMessage(`Currently playing: ${currentSong?.title}`);
+    } else if (message.content === "!skip") {
+      console.log(chat);
+      if (!chat.isModerator && !chat.isOwner)
+        return mc.sendMessage(
+          `${message.user.name}, you are not authorized to skip songs.`,
+        );
+      mc.sendMessage(`${message.user.name}, skipped ${currentSong?.title}.`);
+      const nextSong = await getNextSong();
+      mainWindow.webContents.send("song-skipped", nextSong);
     }
   });
 
   mc.listen({ ignoreFirstResponse: true });
+
+  async function getNextSong() {
+    let videoId: string;
+    let title: string;
+    if (queue.size > 0) {
+      const [queueEntry] = [...queue.entries()];
+      videoId = queueEntry[0];
+      title = queueEntry[1].title;
+      queue.delete(videoId);
+      mainWindow.webContents.send(
+        "queue-updated",
+        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+      );
+    } else {
+      videoId = getRandomSong();
+      title = await getSongTitle(videoId);
+    }
+
+    currentSong = { id: videoId, title };
+    writeFileSync("current-song.txt", parseSongTitle(title));
+    cooldowns.clear();
+    return videoId;
+  }
 };
 
 app.on("ready", createWindow);

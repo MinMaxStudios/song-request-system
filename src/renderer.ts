@@ -13,13 +13,15 @@ declare global {
       onQueueUpdate: (
         callback: (queue: { id: string; title: string }[]) => void,
       ) => void;
+      onSongSkipped: (callback: (videoId: string) => void) => void;
     };
   }
 }
 
+let player: YT.Player;
 (async () => {
   const videoId = await window.electronAPI.getVideo();
-  const player = new YT.Player("player", {
+  player = new YT.Player("player", {
     height: "390",
     width: "640",
     videoId,
@@ -42,4 +44,8 @@ window.electronAPI.onQueueUpdate((queue) => {
   document.getElementById("queue")!.innerText =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     `Current Queue:\n${queue.map(({ title }: any, index: number) => `${index + 1}. ${title}`).join("\n")}`;
+});
+
+window.electronAPI.onSongSkipped((videoId) => {
+  player.loadVideoById(videoId);
 });
