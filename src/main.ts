@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import "dotenv/config";
 
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain, Menu, shell } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
@@ -46,6 +46,8 @@ const createWindow = async () => {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    maximizable: false,
+    resizable: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -63,6 +65,42 @@ const createWindow = async () => {
 
   ipcMain.handle("yt:get-video", async () => {
     return await getNextSong();
+  });
+
+  ipcMain.on("show-context-menu", (_event, videoId) => {
+    const menu = Menu.buildFromTemplate([
+      {
+        label: "Remove from queue",
+        click: () => {
+          queue.delete(videoId);
+          mainWindow.webContents.send(
+            "queue-updated",
+            [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+          );
+        },
+      },
+      {
+        label: "Skip to this song",
+        click: () => {
+          const video = queue.get(videoId);
+          const videoObj = { id: videoId, title: video.title };
+          updateSong(videoObj);
+          mainWindow.webContents.send("song-skipped", videoObj);
+          queue.delete(videoId);
+          mainWindow.webContents.send(
+            "queue-updated",
+            [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+          );
+        },
+      },
+      {
+        label: "Copy video link",
+        click: () => {
+          clipboard.writeText(`https://youtube.com/watch?v=${videoId}`);
+        },
+      },
+    ]);
+    menu.popup();
   });
 
   const mc = await Masterchat.init(process.env.YOUTUBE_STREAM_ID!, {
@@ -150,11 +188,23 @@ const createWindow = async () => {
       title = await getSongTitle(videoId);
     }
 
-    currentSong = { id: videoId, title };
-    writeFileSync("current-song.txt", parseSongTitle(title));
-    cooldowns.clear();
-    return videoId;
+    updateSong({ id: videoId, title });
+    return { id: videoId, title };
   }
+
+  function updateSong(video: { id: string; title: string }) {
+    currentSong = video;
+    writeFileSync("current-song.txt", parseSongTitle(video.title));
+    cooldowns.clear();
+  }
+
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    if (details.url.startsWith("http")) {
+      shell.openExternal(details.url);
+      return { action: "deny" };
+    }
+    return { action: "allow" };
+  });
 };
 
 app.on("ready", createWindow);

@@ -8,7 +8,44 @@
 
 <body>
   <div id="player"></div>
-  <div id="queue">Current queue:</div>
+  <div class="controls">
+    <div class="buttons">
+      <button id="playpause">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-circle-pause">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="10" x2="10" y1="15" y2="9" />
+          <line x1="14" x2="14" y1="15" y2="9" />
+        </svg>
+      </button>
+      <button id="skip">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-skip-forward">
+          <polygon points="5 4 15 12 5 20 5 4" />
+          <line x1="19" x2="19" y1="5" y2="19" />
+        </svg>
+      </button>
+    </div>
+    <div class="volume">
+      <button id="volume-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-volume-2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </svg>
+      </button>
+      <input type="range" min="0" max="100" value="100" id="volume" />
+    </div>
+  </div>
+  <p><b>Currently playing</b>: <a target="_blank" id="currentsong"></a></p>
+  <div class="queue">
+    <h1>Queue</h1>
+    <div id="queue">No songs in queue.</div>
+  </div>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script type="module" src="/src/renderer.ts"></script>
 </body>
