@@ -113,6 +113,12 @@ const createWindow = async () => {
       );
     } else if (message.content === "!currentsong") {
       mc.sendMessage(`Currently playing: ${currentSong?.title}`);
+    } else if (message.content === "!queue") {
+      if (!queue.size)
+        return mc.sendMessage("There are no songs in the queue.");
+      mc.sendMessage(
+        `Next 3 songs in the queue: ${[...queue.entries()].map(([, { title }], index) => `${index + 1}. ${title}`).join(", ")}`,
+      );
     } else if (message.content === "!skip") {
       console.log(chat);
       if (!chat.isModerator && !chat.isOwner)
