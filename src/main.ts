@@ -42,7 +42,6 @@ const trustedChannels = ["UC_aEa8K-EOJ3D6gOs7HcyNg"];
 
 function getRandomSong(): string {
   const videoId = songIds[Math.floor(Math.random() * songIds.length)];
-  console.log(previousSongId, videoId);
   if (videoId === previousSongId) return getRandomSong();
   return videoId;
 }
