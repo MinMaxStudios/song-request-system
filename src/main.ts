@@ -2,7 +2,7 @@
 import "dotenv/config";
 
 import { app, BrowserWindow, clipboard, ipcMain, Menu, shell } from "electron";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, copyFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
 
@@ -10,11 +10,26 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+if (
+  !process.env.YOUTUBE_API_KEY ||
+  !process.env.YOUTUBE_BOT_CREDENTIALS ||
+  !process.env.YOUTUBE_STREAM_ID
+) {
+  console.error(
+    "You need to set the following environment variables: YOUTUBE_API_KEY, YOUTUBE_BOT_CREDENTIALS, YOUTUBE_STREAM_ID",
+  );
+  process.exit(1);
+}
+
+if (!existsSync("songs.json")) {
+  copyFileSync("songs.example.json", "songs.json");
+}
+
 let currentSong: {
   id: string;
   title: string;
 } | null = null;
-const songIds = JSON.parse(readFileSync("./songs.json", "utf-8"));
+const songIds = JSON.parse(readFileSync("songs.json", "utf-8"));
 const queue = new Map<
   string,
   {
