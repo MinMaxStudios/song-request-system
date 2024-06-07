@@ -47,11 +47,12 @@ function getRandomSong(): string {
   return videoId;
 }
 
-async function getSongTitle(videoId: string): Promise<string> {
+async function getSongTitle(videoId: string): Promise<string | null> {
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`,
   );
   const data = await res.json();
+  if (!data.items[0]) return null;
   return data.items[0].snippet.title;
 }
 
@@ -228,6 +229,13 @@ const createWindow = async () => {
     } else {
       videoId = getRandomSong();
       title = await getSongTitle(videoId);
+      while (title === null) {
+        if (queue.has(videoId)) queue.delete(videoId);
+        songIds.splice(songIds.indexOf(videoId), 1);
+        writeFileSync("songs.json", JSON.stringify(songIds));
+        videoId = getRandomSong();
+        title = await getSongTitle(videoId);
+      }
     }
 
     updateSong({ id: videoId, title });
@@ -235,8 +243,8 @@ const createWindow = async () => {
   }
 
   function updateSong(video: { id: string; title: string }) {
-    previousSongId = currentSong?.id ?? video.id;
     currentSong = video;
+    previousSongId = currentSong?.id ?? video.id;
     writeFileSync("current-song.txt", parseSongTitle(video.title));
     cooldowns.clear();
   }
