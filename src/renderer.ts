@@ -25,6 +25,13 @@ let player: YT.Player;
     height: "390",
     width: "640",
     videoId,
+    playerVars: {
+      showinfo: 0,
+      controls: 0,
+      autohide: 1,
+      modestbranding: 1,
+      rel: 0,
+    },
     events: {
       onReady: () => {
         player.playVideo();
