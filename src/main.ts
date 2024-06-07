@@ -22,6 +22,7 @@ const queue = new Map<
   }
 >();
 const cooldowns = new Set<string>();
+const trustedChannels = ["UC_aEa8K-EOJ3D6gOs7HcyNg"];
 
 function getRandomSong() {
   return songIds[Math.floor(Math.random() * songIds.length)];
@@ -122,7 +123,6 @@ const createWindow = async () => {
           `${message.user.name}, you're on cooldown. Request another song after the current song ends.`,
         );
 
-      // TODO: only add to queue if it's not already there
       // TODO: only add to queue if it's part of `songIds`
       const searchQuery = message.content.split(" ").slice(1).join(" ");
       const res = await fetch(
@@ -139,12 +139,26 @@ const createWindow = async () => {
       const video = data.items[0];
       const videoId = video.id.videoId;
       const title = parseSongTitle(video.snippet.title);
+      if (queue.has(videoId))
+        return mc.sendMessage(
+          `${message.user.name}, ${title} is already in the queue.`,
+        );
+      if (!songIds.includes(videoId)) {
+        if (trustedChannels.includes(video.snippet.channelId)) {
+          songIds.push(videoId);
+          writeFileSync("songs.json", JSON.stringify(songIds));
+        } else
+          return mc.sendMessage(
+            `${message.user.name}, you can only request songs that are from the playlist.`,
+          );
+      }
+
       queue.set(videoId, { title });
       mainWindow.webContents.send(
         "queue-updated",
         [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
       );
-      cooldowns.add(message.user.id);
+      if (!chat.isOwner) cooldowns.add(message.user.id);
 
       mc.sendMessage(
         `${message.user.name}, ${title} has been added to the queue.`,
