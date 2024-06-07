@@ -84,6 +84,8 @@ const createWindow = async () => {
           `${message.user.name}, you're on cooldown. Request another song after the current song ends.`,
         );
 
+      // TODO: only add to queue if it's not already there
+      // TODO: only add to queue if it's part of `songIds`
       const searchQuery = message.content.split(" ").slice(1).join(" ");
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
