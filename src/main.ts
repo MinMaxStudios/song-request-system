@@ -123,7 +123,6 @@ const createWindow = async () => {
           `${message.user.name}, you're on cooldown. Request another song after the current song ends.`,
         );
 
-      // TODO: only add to queue if it's part of `songIds`
       const searchQuery = message.content.split(" ").slice(1).join(" ");
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
@@ -172,7 +171,6 @@ const createWindow = async () => {
         `Next 3 songs in the queue: ${[...queue.entries()].map(([, { title }], index) => `${index + 1}. ${title}`).join(", ")}`,
       );
     } else if (message.content === "!skip") {
-      console.log(chat);
       if (!chat.isModerator && !chat.isOwner)
         return mc.sendMessage(
           `${message.user.name}, you are not authorized to skip songs.`,
