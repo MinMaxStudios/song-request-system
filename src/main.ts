@@ -21,6 +21,7 @@ const queue = new Map<
     title: string;
   }
 >();
+const cooldowns = new Set<string>();
 
 function getRandomSong() {
   return songIds[Math.floor(Math.random() * songIds.length)];
@@ -79,6 +80,7 @@ const createWindow = async () => {
 
     currentSong = { id: videoId, title };
     writeFileSync("current-song.txt", parseSongTitle(title));
+    cooldowns.clear();
     return videoId;
   });
 
@@ -96,6 +98,11 @@ const createWindow = async () => {
       },
     };
     if (message.content.startsWith("!sr")) {
+      if (cooldowns.has(message.user.id))
+        return mc.sendMessage(
+          `${message.user.name}, you're on cooldown. Request another song after the current song ends.`,
+        );
+
       const searchQuery = message.content.split(" ").slice(1).join(" ");
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
@@ -116,6 +123,8 @@ const createWindow = async () => {
         "queue-updated",
         [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
       );
+      cooldowns.add(message.user.id);
+
       mc.sendMessage(
         `${message.user.name}, ${title} has been added to the queue.`,
       );
