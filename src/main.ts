@@ -29,6 +29,7 @@ let currentSong: {
   id: string;
   title: string;
 } | null = null;
+let previousSongId: string | null = null;
 const songIds = JSON.parse(readFileSync("songs.json", "utf-8"));
 const queue = new Map<
   string,
@@ -39,8 +40,11 @@ const queue = new Map<
 const cooldowns = new Set<string>();
 const trustedChannels = ["UC_aEa8K-EOJ3D6gOs7HcyNg"];
 
-function getRandomSong() {
-  return songIds[Math.floor(Math.random() * songIds.length)];
+function getRandomSong(): string {
+  const videoId = songIds[Math.floor(Math.random() * songIds.length)];
+  console.log(previousSongId, videoId);
+  if (videoId === previousSongId) return getRandomSong();
+  return videoId;
 }
 
 async function getSongTitle(videoId: string): Promise<string> {
@@ -231,6 +235,7 @@ const createWindow = async () => {
   }
 
   function updateSong(video: { id: string; title: string }) {
+    previousSongId = currentSong?.id ?? video.id;
     currentSong = video;
     writeFileSync("current-song.txt", parseSongTitle(video.title));
     cooldowns.clear();
