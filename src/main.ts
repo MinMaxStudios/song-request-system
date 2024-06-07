@@ -87,8 +87,6 @@ const createWindow = async () => {
     );
   }
 
-  mainWindow.webContents.openDevTools();
-
   ipcMain.handle("yt:get-video", async () => {
     return await getNextSong();
   });
