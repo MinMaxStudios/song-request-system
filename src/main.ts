@@ -5,7 +5,6 @@ import { app, BrowserWindow, clipboard, ipcMain, Menu, shell } from "electron";
 import { readFileSync, writeFileSync, existsSync, copyFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
-import axios from "axios";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -254,7 +253,7 @@ const createWindow = async () => {
   function updateSong(video: { id: string; title: string }) {
     currentSong = video;
     previousSongId = currentSong?.id ?? video.id;
-    writeFileSync("current-song.txt", parseSongTitle(video.title));
+    writeFileSync("current-song.txt", parseSongTitle(video.title) + " ");
     cooldowns.clear();
   }
 
