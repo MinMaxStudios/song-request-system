@@ -5,6 +5,7 @@ import { app, BrowserWindow, clipboard, ipcMain, Menu, shell } from "electron";
 import { readFileSync, writeFileSync, existsSync, copyFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
+import axios from "axios";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -213,6 +214,11 @@ const createWindow = async () => {
       const nextSong = await getNextSong();
       mainWindow.webContents.send("song-skipped", nextSong);
     }
+  });
+
+  mc.on("error", (err) => {
+    console.error(err);
+    mc.listen({ ignoreFirstResponse: true });
   });
 
   mc.listen({ ignoreFirstResponse: true });
