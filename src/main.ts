@@ -44,6 +44,7 @@ const trustedChannels = [
   "UCJ6td3C9QlPO9O_J5dF4ZzA",
   "UCp8OOssjSjGZRVYK6zWbNLg",
   "UCa_UMppcMsHIzb5LDx1u9zQ",
+  "UCMg7TTDtUXq2yTu3uqqoprQ",
 ];
 
 function getRandomSong(): string {
