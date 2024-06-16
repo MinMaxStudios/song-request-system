@@ -39,12 +39,14 @@ const queue = new Map<
 >();
 const cooldowns = new Set<string>();
 const trustedChannels = [
-  "UC_aEa8K-EOJ3D6gOs7HcyNg",
-  "UCiJnBO_XuDsi1SSRAmt4n5g",
-  "UCJ6td3C9QlPO9O_J5dF4ZzA",
-  "UCp8OOssjSjGZRVYK6zWbNLg",
-  "UCa_UMppcMsHIzb5LDx1u9zQ",
-  "UCMg7TTDtUXq2yTu3uqqoprQ",
+  "UC_aEa8K-EOJ3D6gOs7HcyNg", // NoCopyrightSounds
+  "UCiJnBO_XuDsi1SSRAmt4n5g", // NCS Arcade 
+  "UCJ6td3C9QlPO9O_J5dF4ZzA", // Monstercat Uncaged
+  "UCp8OOssjSjGZRVYK6zWbNLg", // Monstercat Instinct
+  "UCa_UMppcMsHIzb5LDx1u9zQ", // TheFatRat
+  "UCMg7TTDtUXq2yTu3uqqoprQ", // Epidemic Electronic
+  "UCCeNgETxEJf__ZAAOvU5ZaQ", // Elektronomia
+  "UCAA6pKrh72sARBb7JCfp8AA", // Tobu
 ];
 
 function getRandomSong(): string {
