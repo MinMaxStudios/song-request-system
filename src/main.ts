@@ -25,12 +25,19 @@ if (!existsSync("songs.json")) {
   copyFileSync("songs.example.json", "songs.json");
 }
 
+const defaultPlaylist = JSON.parse(readFileSync("songs.example.json", "utf-8"));
+const songIds = JSON.parse(readFileSync("songs.json", "utf-8"));
+const missingSongs = songIds.filter((id: string) => !defaultPlaylist.includes(id));
+if (missingSongs.length > 0) {
+  songIds.push(...missingSongs);
+  writeFileSync("songs.json", JSON.stringify(songIds));
+}
+
 let currentSong: {
   id: string;
   title: string;
 } | null = null;
 let previousSongId: string | null = null;
-const songIds = JSON.parse(readFileSync("songs.json", "utf-8"));
 const queue = new Map<
   string,
   {
