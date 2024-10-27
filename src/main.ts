@@ -144,6 +144,22 @@ const createWindow = async () => {
     credentials: process.env.YOUTUBE_BOT_CREDENTIALS!,
   });
 
+  function sendMessage(content: string) {
+    if (content.length === 0) return;
+    if (content.length > 200) {
+      const messages = [];
+      while (content.length > 200) {
+        messages.push(content.substring(0, 200));
+        content = content.substring(200);
+      }
+      for (const message of messages) {
+        mc.sendMessage(message);
+      }
+    } else {
+      mc.sendMessage(content);
+    }
+  }
+
   mc.on("chat", async (chat) => {
     const message = {
       content: stringify(chat.message),
@@ -220,13 +236,13 @@ const createWindow = async () => {
         `${message.user.name}, ${title} has been added to the queue.`
       );
     } else if (message.content === "!currentsong") {
-      mc.sendMessage(
+      sendMessage(
         `Currently playing: ${currentSong?.title} (https://youtu.be/${currentSong?.id})`
       );
     } else if (message.content === "!queue") {
       if (!queue.size)
         return mc.sendMessage("There are no songs in the queue.");
-      mc.sendMessage(
+      sendMessage(
         `Next 3 songs in the queue: ${[...queue.entries()]
           .map(([, { title }], index) => `${index + 1}. ${title}`)
           .join(", ")}`
@@ -236,7 +252,7 @@ const createWindow = async () => {
         return mc.sendMessage(
           `${message.user.name}, you are not authorized to skip songs.`
         );
-      mc.sendMessage(`${message.user.name}, skipped ${currentSong?.title}.`);
+      sendMessage(`${message.user.name}, skipped ${currentSong?.title}.`);
       const nextSong = await getNextSong();
       mainWindow.webContents.send("song-skipped", nextSong);
     }
