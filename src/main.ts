@@ -244,7 +244,8 @@ const createWindow = async () => {
       sendMessage(
         `Next 3 songs in the queue: ${[...queue.entries()]
           .map(([, { title }], index) => `${index + 1}. ${title}`)
-          .join(", ")}`
+          .join(", ")
+          .slice(0, 3)}`
       );
     } else if (message.content === "!skip") {
       if (!chat.isModerator && !chat.isOwner)
