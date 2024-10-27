@@ -172,11 +172,10 @@ const createWindow = async () => {
     if (message.content.startsWith("!sr")) {
       const cooldown = cooldowns.get(message.user.id);
       if (cooldown) {
-        const expirationTime = cooldown + 10 * 1000;
-        if (Date.now() < expirationTime) {
+        if (Date.now() < cooldown + 10 * 1000) {
           return mc.sendMessage(
             `${message.user.name}, you're on cooldown. Please wait ${ms(
-              expirationTime,
+              cooldown - Date.now(),
               { long: true }
             )} before requesting another song.`
           );
