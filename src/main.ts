@@ -220,7 +220,9 @@ const createWindow = async () => {
         `${message.user.name}, ${title} has been added to the queue.`
       );
     } else if (message.content === "!currentsong") {
-      mc.sendMessage(`Currently playing: ${currentSong?.title}`);
+      mc.sendMessage(
+        `Currently playing: ${currentSong?.title} (https://youtu.be/${currentSong?.id})`
+      );
     } else if (message.content === "!queue") {
       if (!queue.size)
         return mc.sendMessage("There are no songs in the queue.");
