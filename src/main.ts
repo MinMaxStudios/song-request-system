@@ -190,7 +190,7 @@ const createWindow = async () => {
         )}&maxResults=5&type=video&key=${process.env.YOUTUBE_API_KEY}`
       );
       const data = await res.json();
-      if (!data.items.length)
+      if (!data.items?.length)
         return mc.sendMessage(
           `${message.user.name}, I couldn't find a video with that search query.`
         );
@@ -220,7 +220,7 @@ const createWindow = async () => {
       }
 
       if (queue.has(videoId))
-        return mc.sendMessage(
+        return sendMessage(
           `${message.user.name}, ${title} is already in the queue.`
         );
 
@@ -232,7 +232,7 @@ const createWindow = async () => {
       if (!chat.isOwner || !chat.isModerator)
         cooldowns.set(message.user.id, Date.now());
 
-      mc.sendMessage(
+      sendMessage(
         `${message.user.name}, ${title} has been added to the queue.`
       );
     } else if (message.content === "!currentsong") {
