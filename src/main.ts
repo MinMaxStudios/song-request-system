@@ -5,6 +5,7 @@ import { app, BrowserWindow, clipboard, ipcMain, Menu, shell } from "electron";
 import { readFileSync, writeFileSync, existsSync, copyFileSync } from "node:fs";
 import path from "path";
 import { Masterchat, stringify } from "masterchat";
+import ms from "ms";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -16,7 +17,7 @@ if (
   !process.env.YOUTUBE_STREAM_ID
 ) {
   console.error(
-    "You need to set the following environment variables: YOUTUBE_API_KEY, YOUTUBE_BOT_CREDENTIALS, YOUTUBE_STREAM_ID",
+    "You need to set the following environment variables: YOUTUBE_API_KEY, YOUTUBE_BOT_CREDENTIALS, YOUTUBE_STREAM_ID"
   );
   process.exit(1);
 }
@@ -27,7 +28,9 @@ if (!existsSync("songs.json")) {
 
 const defaultPlaylist = JSON.parse(readFileSync("songs.example.json", "utf-8"));
 const songIds = JSON.parse(readFileSync("songs.json", "utf-8"));
-const missingSongs = songIds.filter((id: string) => !defaultPlaylist.includes(id));
+const missingSongs = songIds.filter(
+  (id: string) => !defaultPlaylist.includes(id)
+);
 if (missingSongs.length > 0) {
   songIds.push(...missingSongs);
   writeFileSync("songs.json", JSON.stringify(songIds));
@@ -44,10 +47,10 @@ const queue = new Map<
     title: string;
   }
 >();
-const cooldowns = new Set<string>();
+const cooldowns = new Map<string, number>();
 const trustedChannels = [
   "UC_aEa8K-EOJ3D6gOs7HcyNg", // NoCopyrightSounds
-  "UCiJnBO_XuDsi1SSRAmt4n5g", // NCS Arcade 
+  "UCiJnBO_XuDsi1SSRAmt4n5g", // NCS Arcade
   "UCJ6td3C9QlPO9O_J5dF4ZzA", // Monstercat Uncaged
   "UCp8OOssjSjGZRVYK6zWbNLg", // Monstercat Instinct
   "UCa_UMppcMsHIzb5LDx1u9zQ", // TheFatRat
@@ -64,7 +67,7 @@ function getRandomSong(): string {
 
 async function getSongTitle(videoId: string): Promise<string | null> {
   const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`,
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`
   );
   const data = await res.json();
   if (!data.items[0]) return null;
@@ -93,7 +96,7 @@ const createWindow = async () => {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
 
@@ -109,7 +112,7 @@ const createWindow = async () => {
           queue.delete(videoId);
           mainWindow.webContents.send(
             "queue-updated",
-            [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+            [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title }))
           );
         },
       },
@@ -123,7 +126,7 @@ const createWindow = async () => {
           queue.delete(videoId);
           mainWindow.webContents.send(
             "queue-updated",
-            [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+            [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title }))
           );
         },
       },
@@ -151,37 +154,41 @@ const createWindow = async () => {
       },
     };
     if (message.content.startsWith("!sr")) {
-      if (cooldowns.has(message.user.id))
-        return mc.sendMessage(
-          `${message.user.name}, you're on cooldown. Request another song after the current song ends.`,
-        );
+      const cooldown = cooldowns.get(message.user.id);
+      if (cooldown) {
+        const expirationTime = cooldown + 10 * 1000;
+        if (Date.now() < expirationTime) {
+          return mc.sendMessage(
+            `${message.user.name}, you're on cooldown. Please wait ${ms(
+              expirationTime,
+              { long: true }
+            )} before requesting another song.`
+          );
+        }
+      }
 
       const searchQuery = message.content.split(" ").slice(1).join(" ");
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-          searchQuery,
-        )}&maxResults=5&type=video&key=${process.env.YOUTUBE_API_KEY}`,
+          searchQuery
+        )}&maxResults=5&type=video&key=${process.env.YOUTUBE_API_KEY}`
       );
       const data = await res.json();
-      if (!data.items[0])
+      if (!data.items.length)
         return mc.sendMessage(
-          `${message.user.name}, I couldn't find a video with that search query.`,
+          `${message.user.name}, I couldn't find a video with that search query.`
         );
 
       const video = data.items[0];
       let videoId = video.id.videoId;
       let title = parseSongTitle(video.snippet.title);
-      if (queue.has(videoId))
-        return mc.sendMessage(
-          `${message.user.name}, ${title} is already in the queue.`,
-        );
       if (!songIds.includes(videoId)) {
         if (trustedChannels.includes(video.snippet.channelId)) {
           songIds.push(videoId);
           writeFileSync("songs.json", JSON.stringify(songIds));
         } else {
           let foundVideo = false;
-          for (let i = 1; i < 5; i++) {
+          for (let i = 1; i < 6; i++) {
             const video = data.items[i];
             if (songIds.includes(video.id.videoId)) {
               videoId = video.id.videoId;
@@ -191,20 +198,26 @@ const createWindow = async () => {
           }
           if (!foundVideo)
             return mc.sendMessage(
-              `${message.user.name}, you can only request songs that are from the playlist.`,
+              `${message.user.name}, you can only request songs that are from the playlist.`
             );
         }
       }
 
+      if (queue.has(videoId))
+        return mc.sendMessage(
+          `${message.user.name}, ${title} is already in the queue.`
+        );
+
       queue.set(videoId, { title });
       mainWindow.webContents.send(
         "queue-updated",
-        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title }))
       );
-      if (!chat.isOwner) cooldowns.add(message.user.id);
+      if (!chat.isOwner || !chat.isModerator)
+        cooldowns.set(message.user.id, Date.now());
 
       mc.sendMessage(
-        `${message.user.name}, ${title} has been added to the queue.`,
+        `${message.user.name}, ${title} has been added to the queue.`
       );
     } else if (message.content === "!currentsong") {
       mc.sendMessage(`Currently playing: ${currentSong?.title}`);
@@ -212,12 +225,14 @@ const createWindow = async () => {
       if (!queue.size)
         return mc.sendMessage("There are no songs in the queue.");
       mc.sendMessage(
-        `Next 3 songs in the queue: ${[...queue.entries()].map(([, { title }], index) => `${index + 1}. ${title}`).join(", ")}`,
+        `Next 3 songs in the queue: ${[...queue.entries()]
+          .map(([, { title }], index) => `${index + 1}. ${title}`)
+          .join(", ")}`
       );
     } else if (message.content === "!skip") {
       if (!chat.isModerator && !chat.isOwner)
         return mc.sendMessage(
-          `${message.user.name}, you are not authorized to skip songs.`,
+          `${message.user.name}, you are not authorized to skip songs.`
         );
       mc.sendMessage(`${message.user.name}, skipped ${currentSong?.title}.`);
       const nextSong = await getNextSong();
@@ -242,7 +257,7 @@ const createWindow = async () => {
       queue.delete(videoId);
       mainWindow.webContents.send(
         "queue-updated",
-        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title })),
+        [...queue.entries()].map(([k, v]) => ({ id: k, title: v.title }))
       );
     } else {
       videoId = getRandomSong();
