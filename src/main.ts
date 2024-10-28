@@ -223,6 +223,28 @@ const createWindow = async () => {
               `${message.user.name}, you can only request songs that are from the playlist.`
             );
         }
+      } else if (!searchQuery.includes(" ") && searchQuery.length >= 11) {
+        videoId = searchQuery;
+
+        const res = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`
+        );
+        const data = await res.json();
+        if (!data.items[0])
+          return mc.sendMessage(
+            `${message.user.name}, I couldn't find a video with that search query.`
+          );
+        title = parseSongTitle(data.items[0].snippet.title);
+
+        if (!songIds.includes(videoId)) {
+          if (trustedChannels.includes(data.items[0].snippet.channelId)) {
+            songIds.push(videoId);
+            writeFileSync("songs.json", JSON.stringify(songIds));
+          } else
+            return mc.sendMessage(
+              `${message.user.name}, you can only request songs that are from the playlist.`
+            );
+        }
       } else {
         const res = await fetch(
           `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
