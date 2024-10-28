@@ -175,38 +175,88 @@ const createWindow = async () => {
       }
 
       const searchQuery = message.content.split(" ").slice(1).join(" ");
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-          searchQuery
-        )}&maxResults=5&type=video&key=${process.env.YOUTUBE_API_KEY}`
-      );
-      const data = await res.json();
-      if (!data.items?.length)
-        return mc.sendMessage(
-          `${message.user.name}, I couldn't find a video with that search query.`
-        );
 
-      const video = data.items[0];
-      let videoId = video.id.videoId;
-      let title = parseSongTitle(video.snippet.title);
-      if (!songIds.includes(videoId)) {
-        if (trustedChannels.includes(video.snippet.channelId)) {
-          songIds.push(videoId);
-          writeFileSync("songs.json", JSON.stringify(songIds));
-        } else {
-          let foundVideo = false;
-          for (let i = 1; i < 6; i++) {
-            const video = data.items[i];
-            if (songIds.includes(video.id.videoId)) {
-              videoId = video.id.videoId;
-              title = parseSongTitle(video.snippet.title);
-              foundVideo = true;
-            }
-          }
-          if (!foundVideo)
+      let videoId: string;
+      let title: string;
+
+      if (searchQuery.includes("youtu.be/")) {
+        videoId = searchQuery.split("youtu.be/")[1];
+
+        const res = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`
+        );
+        const data = await res.json();
+        if (!data.items[0])
+          return mc.sendMessage(
+            `${message.user.name}, I couldn't find a video with that search query.`
+          );
+        title = parseSongTitle(data.items[0].snippet.title);
+
+        if (!songIds.includes(videoId)) {
+          if (trustedChannels.includes(data.items[0].snippet.channelId)) {
+            songIds.push(videoId);
+            writeFileSync("songs.json", JSON.stringify(songIds));
+          } else
             return mc.sendMessage(
               `${message.user.name}, you can only request songs that are from the playlist.`
             );
+        }
+      } else if (searchQuery.includes("youtube.com/watch?v=")) {
+        videoId = searchQuery.split("youtube.com/watch?v=")[1].split("&")[0];
+
+        const res = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`
+        );
+        const data = await res.json();
+        if (!data.items[0])
+          return mc.sendMessage(
+            `${message.user.name}, I couldn't find a video with that search query.`
+          );
+        title = parseSongTitle(data.items[0].snippet.title);
+
+        if (!songIds.includes(videoId)) {
+          if (trustedChannels.includes(data.items[0].snippet.channelId)) {
+            songIds.push(videoId);
+            writeFileSync("songs.json", JSON.stringify(songIds));
+          } else
+            return mc.sendMessage(
+              `${message.user.name}, you can only request songs that are from the playlist.`
+            );
+        }
+      } else {
+        const res = await fetch(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+            searchQuery
+          )}&maxResults=5&type=video&key=${process.env.YOUTUBE_API_KEY}`
+        );
+        const data = await res.json();
+        if (!data.items?.length)
+          return mc.sendMessage(
+            `${message.user.name}, I couldn't find a video with that search query.`
+          );
+
+        const video = data.items[0];
+        videoId = video.id.videoId;
+        title = parseSongTitle(video.snippet.title);
+        if (!songIds.includes(videoId)) {
+          if (trustedChannels.includes(video.snippet.channelId)) {
+            songIds.push(videoId);
+            writeFileSync("songs.json", JSON.stringify(songIds));
+          } else {
+            let foundVideo = false;
+            for (let i = 1; i < 5; i++) {
+              const video = data.items[i];
+              if (songIds.includes(video.id.videoId)) {
+                videoId = video.id.videoId;
+                title = parseSongTitle(video.snippet.title);
+                foundVideo = true;
+              }
+            }
+            if (!foundVideo)
+              return mc.sendMessage(
+                `${message.user.name}, you can only request songs that are from the playlist.`
+              );
+          }
         }
       }
 
