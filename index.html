@@ -8,7 +8,22 @@
 
 <body>
   <div id="player"></div>
+  <p id="status" class="status" role="status" hidden></p>
+  <p id="chat-status" class="chat-status" role="status" hidden></p>
   <div class="controls">
+    <label class="output" title="Sound output">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="lucide lucide-speaker" aria-hidden="true">
+        <rect width="16" height="20" x="4" y="2" rx="2" />
+        <path d="M12 6h.01" />
+        <circle cx="12" cy="14" r="4" />
+        <path d="M12 14h.01" />
+      </svg>
+      <select id="audio-output" aria-label="Sound output">
+        <option value="">System default</option>
+      </select>
+    </label>
     <div class="buttons">
       <button id="playpause">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -42,11 +57,16 @@
     </div>
   </div>
   <p><b>Currently playing</b>: <a target="_blank" id="currentsong"></a></p>
+  <p class="now-playing-file">
+    <span>OBS file: <span id="now-playing-path"></span></span>
+    <button id="now-playing-change">Change</button>
+    <button id="now-playing-show">Show</button>
+  </p>
   <div class="queue">
     <h1>Queue</h1>
     <div id="queue">No songs in queue.</div>
   </div>
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <!-- the YouTube IFrame API is loaded by renderer.ts, which waits until it's ready -->
   <script type="module" src="/src/renderer.ts"></script>
 </body>
 
